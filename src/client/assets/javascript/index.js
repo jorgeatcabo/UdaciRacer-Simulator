@@ -36,6 +36,8 @@ function setupClickHandlers() {
 	document.addEventListener('click', function(event) {
 		const { target } = event
 
+		console.log(target)
+
 		// Race track form field
 		if (target.matches('.card.track')) {
 			handleSelectTrack(target)
@@ -56,7 +58,7 @@ function setupClickHandlers() {
 
 		// Handle acceleration click
 		if (target.matches('#gas-peddle')) {
-			handleAccelerate()
+			handleAccelerate(target)
 		}
 
 	}, false)
@@ -80,7 +82,6 @@ async function handleCreateRace() {
 	let player_id = store.player_id;
 	let track_id = store.track_id;
 	
-	
 	try {
 		const race = await createRace(player_id, track_id)
 
@@ -93,11 +94,8 @@ async function handleCreateRace() {
 
 		await runCountdown()
 
-		console.log("Before startRace()")
 		// TODO - call the async function startRace
 		await startRace(store.race_id)
-
-		console.log("Before runRace()")
 
 		// TODO - call the async function runRace
 		await runRace(store.race_id)
@@ -108,28 +106,36 @@ async function handleCreateRace() {
 }
 
 function runRace(raceID) {
-	console.log(raceID)
 	return new Promise(resolve => {
 		// TODO - use Javascript's built in setInterval method to get race info every 500ms
-
-				// TODO - use Javascript's built in setInterval method to count down once per second
-				var decreaseTimer =setInterval(function () {
-					
-					console.log("runRAce")
-				}, 500);
-		/*
-			TODO - if the race info status property is "in-progress", update the leaderboard by calling:
+		var raceInterval = setInterval(function () {
+			/*
+				TODO - if the race info status property is "in-progress", update the leaderboard by calling:
 	
-			renderAt('#leaderBoard', raceProgress(res.positions))
-		*/
+				renderAt('#leaderBoard', raceProgress(res.positions))
+			*/
 
-		/*
-			TODO - if the race info status property is "finished", run the following:
-	
-			clearInterval(raceInterval) // to stop the interval from repeating
-			renderAt('#race', resultsView(res.positions)) // to render the results view
-			reslove(res) // resolve the promise
-		*/
+			getRace(raceID).then(racerInfo => {
+				
+				if (racerInfo.status === "in-progress") {
+					renderAt('#leaderBoard', raceProgress(racerInfo.positions))
+				}
+				else
+				{
+					/*
+						TODO - if the race info status property is "finished", run the following:
+				
+						clearInterval(raceInterval) // to stop the interval from repeating
+						renderAt('#race', resultsView(res.positions)) // to render the results view
+						reslove(res) // resolve the promise
+					*/
+
+					clearInterval(raceInterval)
+					renderAt('#race', resultsView(racerInfo.positions))
+					resolve(racerInfo)
+                }
+			}).catch(err => console.log(err));		}, 500);
+
 		// remember to add error handling for the Promise
 	}).catch(err => console.log(err));
 	
@@ -172,6 +178,7 @@ function handleSelectPodRacer(target) {
 	target.classList.add('selected')
 
 	// TODO - save the selected racer to the store
+	store.player_id = parseInt(target.id)
 }
 
 function handleSelectTrack(target) {
@@ -187,12 +194,14 @@ function handleSelectTrack(target) {
 	target.classList.add('selected')
 
 	// TODO - save the selected track id to the store
-	
+	store.track_id = parseInt(target.id)
 }
 
 function handleAccelerate() {
 	console.log("accelerate button clicked")
 	// TODO - Invoke the API call to accelerate
+	accelerate(store.race_id)
+
 }
 
 // HTML VIEWS ------------------------------------------------
@@ -295,6 +304,7 @@ function resultsView(positions) {
 }
 
 function raceProgress(positions) {
+	console.log("positions",positions)
 	let userPlayer = positions.find(e => e.id === store.player_id)
 	userPlayer.driver_name += " (you)"
 
@@ -385,11 +395,9 @@ function getRace(id) {
 
 function startRace(id) {
 	return fetch(`${SERVER}/api/races/${id}/start`, {
-		method: 'POST',
+		method: "POST",
 		...defaultFetchOpts(),
-	})
-	.then(res => res.json())
-	.catch(err => console.log("Problem with getRace request::", err))
+	}).catch((err) => console.log("Problem with startRace request::", err));
 }
 
 function accelerate(id) {
@@ -399,7 +407,5 @@ function accelerate(id) {
 	return fetch(`${SERVER}/api/races/${id}/accelerate`, {
 		method: 'POST',
 		...defaultFetchOpts(),
-	})
-		.then(res => res.json())
-		.catch(err => console.log("Problem with accelerate(id) request::", err))
+	}).catch(err => console.log("Problem with accelerate(id) request::", err))
 }
