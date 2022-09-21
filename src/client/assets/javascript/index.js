@@ -36,8 +36,6 @@ function setupClickHandlers() {
 	document.addEventListener('click', function(event) {
 		const { target } = event
 
-		console.log(target)
-
 		// Race track form field
 		if (target.matches('.card.track')) {
 			handleSelectTrack(target)
@@ -116,7 +114,6 @@ function runRace(raceID) {
 			*/
 
 			getRace(raceID).then(racerInfo => {
-				
 				if (racerInfo.status === "in-progress") {
 					renderAt('#leaderBoard', raceProgress(racerInfo.positions))
 				}
@@ -304,7 +301,6 @@ function resultsView(positions) {
 }
 
 function raceProgress(positions) {
-	console.log("positions",positions)
 	let userPlayer = positions.find(e => e.id === store.player_id)
 	userPlayer.driver_name += " (you)"
 
@@ -360,14 +356,14 @@ function getTracks() {
 	// GET request to `${SERVER}/api/tracks`
 	return fetch(`${SERVER}/api/tracks`)
 		.then(response => response.json())
-		.catch(error => console.log("Problem with getTracks request::", err))
+		.catch(err => console.log("Problem with getTracks request::", err))
 }
 
 function getRacers() {
 	// GET request to `${SERVER}/api/cars`
 	return fetch(`${SERVER}/api/cars`)
 		.then(response => response.json())
-		.catch(error => console.log("Problem with getRacers request::", err))
+		.catch(err => console.log("Problem with getRacers request::", err))
 }
 
 function createRace(player_id, track_id) {
@@ -389,7 +385,7 @@ function getRace(id) {
 	// GET request to `${SERVER}/api/races/${id}`
 	return fetch(`${SERVER}/api/races/${id}`)
 		.then(response => response.json())
-		.catch(error => console.log("Problem with getRace(id) request::", err))
+		.catch(err=> console.log("Problem with getRace(id) request::", err))
 
 }
 
